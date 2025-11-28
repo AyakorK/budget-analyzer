@@ -8,13 +8,13 @@ pub struct BudgetConfig {
     #[serde(default = "default_profiles")]
     pub profiles: HashMap<String, ProfileConfig>,
 
-    #[serde(default)]
+    #[serde(default, alias = "filePatterns")]
     pub file_patterns: HashMap<String, String>,
 
     #[serde(default)]
     pub files: HashMap<String, String>,
 
-    #[serde(default = "default_true")]
+    #[serde(default = "default_true", alias = "autoDetect")]
     pub auto_detect: bool,
 
     #[serde(default = "default_rules")]
@@ -26,12 +26,13 @@ pub struct BudgetConfig {
     #[serde(default)]
     pub maluses: HashMap<String, i32>,
 
-    #[serde(default)]
+    #[serde(default, alias = "enforceAtCompile")]
     pub enforce_at_compile: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProfileConfig {
+    #[serde(alias = "maxBudget")]
     pub max_budget: i32,
 
     #[serde(default)]

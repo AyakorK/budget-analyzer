@@ -1,6 +1,5 @@
 use budget_analyzer::BudgetConfig;
 use std::fs;
-use std::path::Path;
 
 #[test]
 fn test_default_config() {
@@ -31,11 +30,11 @@ fn test_default_config() {
 
 #[test]
 fn test_custom_config_loading() {
-    // Create temporary config file
+    // Create temporary config file with correct field names
     let config_content = r#"{
         "profiles": {
             "my_profile": {
-                "maxBudget": 200,
+                "max_budget": 200,
                 "description": "Custom test profile"
             }
         },

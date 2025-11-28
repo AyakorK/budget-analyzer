@@ -104,17 +104,37 @@ impl SemanticDetector {
     }
 
     fn is_ternary(&self, node: &Node, code: &str) -> bool {
-        let text = node.utf8_text(code.as_bytes()).unwrap_or("");
+        let kind = node.kind();
 
-        // JavaScript/TypeScript: condition ? true : false
-        let has_ternary_op = text.contains('?') && text.contains(':');
+        // Check node kind first (most reliable for JS/TS)
+        if kind == "ternary_expression"
+            || kind == "conditional_expression"
+            || kind == "ternary" {
+            return true;
+        }
 
-        // Python: true if condition else false (single line)
-        let has_python_ternary = text.contains(" if ")
-            && text.contains(" else ")
-            && !text.contains('\n');
+        // For other languages or fallback, check text
+        // Only if it's a reasonable expression node
+        if kind.contains("expression") || kind.contains("statement") {
+            let text = node.utf8_text(code.as_bytes()).unwrap_or("");
+            let trimmed = text.trim();
 
-        has_ternary_op || has_python_ternary
+            // Avoid matching entire files or large blocks
+            if trimmed.len() > 200 || trimmed.contains('\n') {
+                return false;
+            }
+
+            // JavaScript/TypeScript: condition ? true : false
+            let has_question = trimmed.contains('?');
+            let has_colon = trimmed.contains(':');
+
+            // Python: value if condition else other_value
+            let has_python_style = trimmed.contains(" if ") && trimmed.contains(" else ");
+
+            return (has_question && has_colon) || has_python_style;
+        }
+
+        false
     }
 
     // === HELPERS ===

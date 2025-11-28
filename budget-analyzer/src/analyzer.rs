@@ -116,7 +116,7 @@ impl Analyzer {
             if seen.insert(key) {
                 self.update_stats(construct_type, stats);
 
-                let cost = self.calculate_cost(construct_type, node, code);
+                let cost = self.calculate_cost(construct_type);
 
                 breakdown.push(CostItem {
                     kind: construct_type.as_str().to_string(),
@@ -141,7 +141,7 @@ impl Analyzer {
         }
     }
 
-    fn calculate_cost(&self, construct_type: ConstructType, node: &Node, code: &str) -> i32 {
+    fn calculate_cost(&self, construct_type: ConstructType) -> i32 {
         let base_cost = match construct_type {
             ConstructType::Variable => self.config.rules.variable,
             ConstructType::Function => self.config.rules.function,
@@ -149,31 +149,13 @@ impl Analyzer {
             ConstructType::While => self.config.rules.r#while,
             ConstructType::For => self.config.rules.r#for,
             ConstructType::Class => self.config.rules.class,
-            ConstructType::Ternary => 0, // Handled by bonus
+            ConstructType::Ternary => 0,
         };
 
         let bonus = self.config.get_bonus(construct_type.as_str());
         let malus = self.config.get_malus(construct_type.as_str());
 
-        // Apply bonuses for specific patterns
-        let pattern_bonus = self.detect_pattern_bonus(construct_type, node, code);
-
-        base_cost + bonus + malus + pattern_bonus
-    }
-
-    fn detect_pattern_bonus(&self, construct_type: ConstructType, _node: &Node, code: &str) -> i32 {
-        match construct_type {
-            ConstructType::Ternary => self.config.get_bonus("ternary"),
-            ConstructType::Function => {
-                // Detect tail recursion
-                if code.contains("return") && code.contains("(") {
-                    self.config.get_bonus("tail_recursion")
-                } else {
-                    0
-                }
-            }
-            _ => 0,
-        }
+        base_cost + bonus + malus
     }
 
     fn get_max_budget(&self, profile: &Profile) -> i32 {

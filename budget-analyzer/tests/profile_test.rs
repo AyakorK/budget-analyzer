@@ -41,8 +41,6 @@ fn test_profile_detection_from_stats() {
 
 #[test]
 fn test_custom_profile_from_config() {
-    use std::collections::HashMap;
-
     let mut config = BudgetConfig::default();
 
     // Add custom file pattern
@@ -62,8 +60,6 @@ fn test_custom_profile_from_config() {
 
 #[test]
 fn test_explicit_file_config() {
-    use std::collections::HashMap;
-
     let mut config = BudgetConfig::default();
 
     // Add explicit file config (higher priority)
