@@ -75,7 +75,6 @@ impl<'a> ProfileDetector<'a> {
             .and_then(|n| n.to_str())
             .unwrap_or("");
 
-        // Test files
         if filename.contains(".test.")
             || filename.contains(".spec.")
             || filename.starts_with("test_")
@@ -83,12 +82,10 @@ impl<'a> ProfileDetector<'a> {
             return Profile::Test;
         }
 
-        // Class files (before service!)
         if stats.class_count > 0 {
             return Profile::Class;
         }
 
-        // Utils files (before service for priority)
         if filename.contains(".utils.")
             || filename.contains("_utils.")
             || filename.contains("util")
@@ -96,14 +93,12 @@ impl<'a> ProfileDetector<'a> {
             return Profile::Strict;
         }
 
-        // Service files (high complexity)
         if filename.contains("Service")
             || filename.contains("service")
             || (stats.function_count >= 5 && stats.has_complex_logic) {
             return Profile::Service;
         }
 
-        // Default: functions = strict
         if stats.function_count > 0 {
             Profile::Strict
         } else {

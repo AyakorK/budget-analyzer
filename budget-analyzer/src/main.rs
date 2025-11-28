@@ -17,30 +17,18 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    // Analyze file(s) for budget
     Analyze {
-        // File or directory to analyze
         path: PathBuf,
 
-        // Output as JSON
         #[arg(short, long)]
         json: bool,
     },
 
-    // Check if budget is exceeded (exit code 1 if exceeded)
     Check {
-        /// File or directory to check
         path: PathBuf,
     },
 
-    Test {
-        /// File or directory to test
-        path: PathBuf,
-    },
-
-    // Show current configuration
     Config {
-        // Show as JSON
         #[arg(short, long)]
         json: bool,
     },
@@ -56,11 +44,6 @@ fn main() -> Result<()> {
         Commands::Check { path } => {
             check_path(&path)?;
         }
-
-        Commands::Test { path } => {
-            test_path(&path, false)?;
-        }
-
         Commands::Config { json } => {
             show_config(json)?;
         }
@@ -138,51 +121,6 @@ fn check_path(path: &PathBuf) -> Result<()> {
 
     if exceeded_count > 0 {
         eprintln!("{}", "❌ Budget check failed!".red().bold());
-        std::process::exit(1);
-    }
-
-    Ok(())
-}
-
-fn test_path(path: &PathBuf, _verbose: bool) -> Result<()> {
-    let analyzer = Analyzer::new()?;
-    let mut total_files = 0;
-    let mut passed_files = 0;
-
-    if path.is_file() {
-        total_files += 1;
-        let result = analyzer.analyze_file(path)?;
-        if !result.exceeded {
-            passed_files += 1;
-        }
-        print_result(&result);
-    } else if path.is_dir() {
-        for entry in WalkDir::new(path).follow_links(true).into_iter().filter_map(|e| e.ok()) {
-            let file_path = entry.path();
-            if let Some(ext) = file_path.extension() {
-                if matches!(ext.to_str(), Some("ts") | Some("tsx") | Some("js") | Some("jsx") | Some("py") | Some("rb") | Some("go") | Some("rs")) {
-                    total_files += 1;
-                    match analyzer.analyze_file(file_path) {
-                        Ok(result) => {
-                            if !result.exceeded {
-                                passed_files += 1;
-                            }
-                            print_result(&result);
-                        }
-                        Err(e) => eprintln!("{} {}: {}", "⚠️".yellow(), file_path.display(), e),
-                    }
-                }
-            }
-        }
-    }
-
-    println!();
-    println!("Test Summary: {} passed, {} total", passed_files, total_files);
-
-    if passed_files == total_files {
-        println!("{}", "✅ All tests passed!".green().bold());
-    } else {
-        eprintln!("{}", "❌ Some tests failed!".red().bold());
         std::process::exit(1);
     }
 

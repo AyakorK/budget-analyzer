@@ -2,8 +2,6 @@ use super::{ConstructType, Detector};
 use std::collections::HashMap;
 use tree_sitter::Node;
 
-/// Fallback detector basé sur des patterns connus
-/// Utilisé quand la détection sémantique échoue
 pub struct PatternDetector {
     patterns: HashMap<String, ConstructType>,
 }

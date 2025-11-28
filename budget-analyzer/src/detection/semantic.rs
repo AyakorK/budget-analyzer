@@ -7,135 +7,214 @@ impl SemanticDetector {
     pub fn new() -> Self {
         Self
     }
+    fn is_in_string_or_comment(&self, node: &Node) -> bool {
+        let kind = node.kind();
+
+        if kind.contains("string")
+            || kind.contains("comment")
+            || kind.contains("template")
+            || kind == "string_literal"
+            || kind == "template_string"
+            || kind == "raw_string_literal"
+            || kind == "interpreted_string_literal" {
+            return true;
+        }
+
+        let mut current = node.parent();
+        while let Some(parent) = current {
+            let parent_kind = parent.kind();
+            if parent_kind.contains("string")
+                || parent_kind.contains("comment")
+                || parent_kind.contains("template")
+                || parent_kind == "string_literal"
+                || parent_kind == "template_string" {
+                return true;
+            }
+            current = parent.parent();
+        }
+
+            false
+        }
+
+    fn is_keyword_in_context(&self, node: &Node, code: &str, keyword: &str) -> bool {
+        if self.is_in_string_or_comment(node) {
+            return false;
+        }
+
+        let text = node.utf8_text(code.as_bytes()).unwrap_or("");
+        let trimmed = text.trim();
+
+        if !trimmed.starts_with(keyword) {
+            return false;
+        }
+
+        if let Some(rest) = trimmed.strip_prefix(keyword) {
+            if rest.is_empty() {
+                return true;
+            }
+
+            let next_char = rest.chars().next();
+            matches!(next_char, Some(' ' | '\t' | '\n' | '(' | '{'))
+        } else {
+            false
+        }
+    }
+
 
     fn is_variable(&self, node: &Node, code: &str) -> bool {
-        // Go-specific: short variable declaration
-        if node.kind() == "short_var_declaration" {
+    if self.is_in_string_or_comment(node) {
+    return false;
+    }
+
+    if node.kind() == "short_var_declaration" {
+    return true;
+    }
+
+    self.has_identifier(node)
+    && self.has_assignment_operator(node, code)
+    && self.is_statement_level(node)
+}
+
+fn is_function(&self, node: &Node, code: &str) -> bool {
+    if self.is_in_string_or_comment(node) {
+        return false;
+    }
+
+    let kind = node.kind();
+
+    if kind.contains("function")
+        || kind.contains("method")
+        || kind == "function_definition"
+        || kind == "function_declaration" {
+        return true;
+    }
+
+    let has_structure = self.has_identifier(node)
+        && self.has_parameters(node)
+        && self.has_body_block(node);
+
+    let has_keyword = self.is_keyword_in_context(node, code, "def")
+        || self.is_keyword_in_context(node, code, "function")
+        || self.is_keyword_in_context(node, code, "func")
+        || self.is_keyword_in_context(node, code, "fn");
+
+    has_structure || has_keyword
+}
+
+fn is_if_statement(&self, node: &Node, code: &str) -> bool {
+    if self.is_in_string_or_comment(node) {
+        return false;
+    }
+
+    let kind = node.kind();
+
+    if kind == "if_statement" || kind == "if_expression" {
+        return true;
+    }
+
+    let has_structure = self.has_condition(node) && self.has_consequent(node);
+    let has_keyword = self.is_keyword_in_context(node, code, "if");
+
+    has_structure || has_keyword
+}
+
+fn is_while_loop(&self, node: &Node, code: &str) -> bool {
+    if self.is_in_string_or_comment(node) {
+        return false;
+    }
+
+    let kind = node.kind();
+
+    if kind == "while_statement" || kind == "while_expression" {
+        return true;
+    }
+
+    let has_structure = self.has_condition(node) && self.has_body_block(node);
+    let has_keyword = self.is_keyword_in_context(node, code, "while")
+        || self.is_keyword_in_context(node, code, "until");
+
+    has_structure && has_keyword
+}
+
+fn is_for_loop(&self, node: &Node, code: &str) -> bool {
+    if self.is_in_string_or_comment(node) {
+        return false;
+    }
+
+    let kind = node.kind();
+
+    if kind == "for_statement"
+        || kind == "for_in_statement"
+        || kind == "for_expression" {
+        return true;
+    }
+
+    let has_structure = self.has_iterator(node) && self.has_body_block(node);
+    let has_keyword = self.is_keyword_in_context(node, code, "for");
+
+    has_structure || has_keyword
+}
+
+fn is_class(&self, node: &Node, code: &str) -> bool {
+    if self.is_in_string_or_comment(node) {
+        return false;
+    }
+
+    let kind = node.kind();
+
+    if kind == "class_declaration"
+        || kind == "class_definition"
+        || kind == "class" {
+        return true;
+    }
+
+    if self.has_identifier(node) && self.has_methods_or_properties(node) {
+        if self.count_methods(node) >= 2 {
             return true;
         }
-
-        self.has_identifier(node)
-            && self.has_assignment_operator(node, code)
-            && self.is_statement_level(node)
     }
 
-    fn is_function(&self, node: &Node, code: &str) -> bool {
-        let kind = node.kind();
-
-        // Check node kind first (most reliable)
-        if kind.contains("function")
-            || kind.contains("method")
-            || kind == "function_definition"
-            || kind == "function_declaration" {
+    if self.is_statement_level(node) {
+        let has_keyword = self.is_keyword_in_context(node, code, "class");
+        if has_keyword && self.has_identifier(node) {
             return true;
         }
+    }
 
-        // Structural check
-        let has_structure = self.has_identifier(node)
-            && self.has_parameters(node)
-            && self.has_body_block(node);
+    false
+}
 
-        // Keyword check
+fn is_ternary(&self, node: &Node, code: &str) -> bool {
+    if self.is_in_string_or_comment(node) {
+        return false;
+    }
+
+    let kind = node.kind();
+
+    if kind == "ternary_expression"
+        || kind == "conditional_expression"
+        || kind == "ternary" {
+        return true;
+    }
+
+    if kind.contains("expression") || kind.contains("statement") {
         let text = node.utf8_text(code.as_bytes()).unwrap_or("");
-        let has_keyword = text.trim_start().starts_with("def ")
-            || text.trim_start().starts_with("function ")
-            || text.trim_start().starts_with("func ")
-            || text.trim_start().starts_with("fn ");
+        let trimmed = text.trim();
 
-        has_structure || has_keyword
-    }
-
-    fn is_if_statement(&self, node: &Node, code: &str) -> bool {
-        let has_structure = self.has_condition(node) && self.has_consequent(node);
-
-        let text = node.utf8_text(code.as_bytes()).unwrap_or("");
-        let has_keyword = text.trim_start().starts_with("if");
-
-        has_structure || has_keyword
-    }
-
-    fn is_while_loop(&self, node: &Node, code: &str) -> bool {
-        let has_structure = self.has_condition(node) && self.has_body_block(node);
-
-        let text = node.utf8_text(code.as_bytes()).unwrap_or("");
-        let has_keyword = text.trim_start().starts_with("while")
-            || text.trim_start().starts_with("until");
-
-        has_structure && has_keyword
-    }
-
-    fn is_for_loop(&self, node: &Node, code: &str) -> bool {
-        let has_structure = self.has_iterator(node) && self.has_body_block(node);
-
-        let text = node.utf8_text(code.as_bytes()).unwrap_or("");
-        let has_keyword = text.trim_start().starts_with("for");
-
-        has_structure || has_keyword
-    }
-
-    fn is_class(&self, node: &Node, code: &str) -> bool {
-        let kind = node.kind();
-
-        // Check node kind first
-        if kind == "class_declaration"
-            || kind == "class_definition"
-            || kind == "class" {
-            return true;
+        if trimmed.len() > 200 || trimmed.contains('\n') {
+            return false;
         }
 
-        // Structural check: must have name AND multiple methods
-        if self.has_identifier(node) && self.has_methods_or_properties(node) {
-            if self.count_methods(node) >= 2 {
-                return true;
-            }
-        }
+        let has_question = trimmed.contains('?');
+        let has_colon = trimmed.contains(':');
 
-        // Keyword check (last resort, very strict)
-        if self.is_statement_level(node) {
-            let text = node.utf8_text(code.as_bytes()).unwrap_or("");
-            let parts: Vec<&str> = text.trim_start().split_whitespace().collect();
+        let has_python_style = trimmed.contains(" if ") && trimmed.contains(" else ");
 
-            if parts.first() == Some(&"class") && parts.get(1).is_some() {
-                return true;
-            }
-        }
-
-        false
+        return (has_question && has_colon) || has_python_style;
     }
 
-    fn is_ternary(&self, node: &Node, code: &str) -> bool {
-        let kind = node.kind();
-
-        // Check node kind first (most reliable for JS/TS)
-        if kind == "ternary_expression"
-            || kind == "conditional_expression"
-            || kind == "ternary" {
-            return true;
-        }
-
-        // For other languages or fallback, check text
-        // Only if it's a reasonable expression node
-        if kind.contains("expression") || kind.contains("statement") {
-            let text = node.utf8_text(code.as_bytes()).unwrap_or("");
-            let trimmed = text.trim();
-
-            // Avoid matching entire files or large blocks
-            if trimmed.len() > 200 || trimmed.contains('\n') {
-                return false;
-            }
-
-            // JavaScript/TypeScript: condition ? true : false
-            let has_question = trimmed.contains('?');
-            let has_colon = trimmed.contains(':');
-
-            // Python: value if condition else other_value
-            let has_python_style = trimmed.contains(" if ") && trimmed.contains(" else ");
-
-            return (has_question && has_colon) || has_python_style;
-        }
-
-        false
-    }
+    false
+}
 
     // === HELPERS ===
 
@@ -148,7 +227,6 @@ impl SemanticDetector {
     }
 
     fn has_assignment_operator(&self, node: &Node, code: &str) -> bool {
-        // Check if node itself is a short_var_declaration
         if node.kind() == "short_var_declaration" {
             return true;
         }
@@ -235,7 +313,6 @@ impl SemanticDetector {
 
 impl Detector for SemanticDetector {
     fn detect(&self, node: &Node, code: &str) -> Option<ConstructType> {
-        // Order matters: most specific first
         if self.is_ternary(node, code) {
             return Some(ConstructType::Ternary);
         }

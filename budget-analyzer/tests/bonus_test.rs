@@ -6,7 +6,6 @@ use std::fs;
 fn test_ternary_bonus() {
     let analyzer = Analyzer::default();
 
-    // Create file with ONE clear ternary
     let ternary_code = r#"const result = condition ? value1 : value2;"#;
 
     fs::write("temp_ternary.ts", ternary_code).unwrap();
@@ -15,7 +14,6 @@ fn test_ternary_bonus() {
         .analyze_file(Path::new("temp_ternary.ts"))
         .expect("Failed to analyze");
 
-    // Check if ternary is detected
     let ternary_items: Vec<_> = result.calculation.breakdown
         .iter()
         .filter(|item| item.kind == "ternary")
@@ -23,13 +21,11 @@ fn test_ternary_bonus() {
 
     assert!(!ternary_items.is_empty(), "Should detect ternary operator");
 
-    // Debug output
     println!("Ternary items detected: {}", ternary_items.len());
     for item in &ternary_items {
         println!("  Line {}: {} pts", item.line, item.cost);
     }
 
-    // Check that bonus is applied (cost should be negative)
     let total_ternary_cost: i32 = ternary_items.iter().map(|item| item.cost).sum();
     assert!(total_ternary_cost < 0, "Ternary should have negative cost (bonus), got {}", total_ternary_cost);
 
@@ -57,7 +53,6 @@ fn test_custom_bonus() {
 
     assert!(!ternary_items.is_empty(), "Should detect ternary");
 
-    // Debug
     println!("Ternary items: {}", ternary_items.len());
     for item in &ternary_items {
         println!("  Cost: {} pts", item.cost);
@@ -65,7 +60,6 @@ fn test_custom_bonus() {
 
     let total_cost: i32 = ternary_items.iter().map(|item| item.cost).sum();
 
-    // With custom bonus of -20, total should be negative
     assert!(total_cost < 0, "Custom bonus should make cost negative, got {}", total_cost);
 
     fs::remove_file("temp_custom_bonus.ts").ok();
@@ -93,7 +87,6 @@ fn test_malus_application() {
     assert!(!if_items.is_empty(), "Should detect if statement");
 
     let item = if_items.first().unwrap();
-    // Base cost (5) + malus (10) = 15
     assert_eq!(item.cost, 15, "If with malus should be 15, got {}", item.cost);
 
     fs::remove_file("temp_malus.ts").ok();
@@ -128,7 +121,6 @@ if (x > 0) {
     assert!(has_if, "Should detect if statement");
     assert!(has_ternary, "Should detect ternary");
 
-    // Ternary should reduce the total
     let ternary_cost: i32 = result.calculation.breakdown
         .iter()
         .filter(|item| item.kind == "ternary")
