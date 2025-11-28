@@ -1,0 +1,54 @@
+{
+    "profiles": {
+        "strict": {
+            "maxBudget": 80,
+            "description": "Simple utility functions"
+        },
+        "class": {
+            "maxBudget": 300,
+            "description": "Classes with methods"
+        },
+        "service": {
+            "maxBudget": 250,
+            "description": "Business logic and services"
+        },
+        "test": {
+            "maxBudget": 500,
+            "description": "Test files"
+        },
+        "custom": {
+            "maxBudget": 150,
+            "description": "My custom profile"
+        }
+    },
+    "filePatterns": {
+        "**/*.utils.ts": "strict",
+        "**/*Service.ts": "service",
+        "**/*.test.ts": "test",
+        "**/*.spec.ts": "test"
+    },
+    "files": {
+        "src/critical.ts": "strict",
+        "src/ComplexService.ts": "service"
+    },
+    "autoDetect": true,
+    "rules": {
+        "variable": 2,
+        "if": 5,
+        "while": 15,
+        "for": 10,
+        "function": 8,
+        "class": 15
+    },
+    "bonuses": {
+        "ternary": -5,
+        "tail_recursion": -10,
+        "pattern_matching": -3,
+        "guard_clause": -2
+    },
+    "maluses": {
+        "nested_if_3_levels": 20,
+        "god_function": 50
+    },
+    "enforceAtCompile": false
+}

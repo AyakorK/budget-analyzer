@@ -1,0 +1,60 @@
+{
+  "name": "budget-analyzer",
+  "displayName": "Budget Analyzer",
+  "description": "Code complexity budget analyzer with semantic detection",
+  "version": "0.1.0",
+  "publisher": "blablalang",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onLanguage:python",
+    "onLanguage:ruby",
+    "onLanguage:go",
+    "onLanguage:rust"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "budget-analyzer.analyze",
+        "title": "Budget: Analyze Current File"
+      },
+      {
+        "command": "budget-analyzer.analyzeWorkspace",
+        "title": "Budget: Analyze Workspace"
+      }
+    ],
+    "configuration": {
+      "title": "Budget Analyzer",
+      "properties": {
+        "budgetAnalyzer.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}

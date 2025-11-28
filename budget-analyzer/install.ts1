@@ -1,0 +1,44 @@
+# Budget Analyzer Windows Installer
+
+$ErrorActionPreference = "Stop"
+
+$REPO = "your-org/budget-analyzer"
+$INSTALL_DIR = "$env:LOCALAPPDATA\budget-analyzer"
+$BINARY_NAME = "budget-windows-x64.exe"
+$DOWNLOAD_URL = "https://github.com/$REPO/releases/latest/download/$BINARY_NAME"
+
+Write-Host "🎯 Budget Analyzer Installer" -ForegroundColor Cyan
+Write-Host "============================" -ForegroundColor Cyan
+Write-Host ""
+
+# Create install directory
+if (!(Test-Path $INSTALL_DIR)) {
+    New-Item -ItemType Directory -Path $INSTALL_DIR | Out-Null
+}
+
+$BINARY_PATH = "$INSTALL_DIR\budget.exe"
+
+Write-Host "📦 Downloading..." -ForegroundColor Yellow
+Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $BINARY_PATH
+
+Write-Host "✅ Budget Analyzer installed!" -ForegroundColor Green
+Write-Host ""
+Write-Host "📍 Location: $BINARY_PATH" -ForegroundColor White
+Write-Host ""
+
+# Check if in PATH
+$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($currentPath -notlike "*$INSTALL_DIR*") {
+    Write-Host "⚠️  Adding to PATH..." -ForegroundColor Yellow
+    [Environment]::SetEnvironmentVariable(
+        "Path",
+        "$currentPath;$INSTALL_DIR",
+        "User"
+    )
+    Write-Host "✅ Added to PATH. Restart your terminal." -ForegroundColor Green
+} else {
+    Write-Host "✅ Already in PATH" -ForegroundColor Green
+}
+
+Write-Host ""
+Write-Host "🚀 Try: budget --version" -ForegroundColor Cyan

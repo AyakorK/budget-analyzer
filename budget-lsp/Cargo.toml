@@ -1,0 +1,26 @@
+[package]
+name = "budget-lsp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# LSP
+tower-lsp = "0.20"
+tokio = { version = "1.35", features = ["full"] }
+
+# Budget analyzer
+budget-analyzer = { path = "../budget-analyzer" }
+
+# Async
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Error handling
+anyhow = "1.0"
