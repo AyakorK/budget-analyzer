@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            name: budget-macos-arm64
+          
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            name: budget-macos-x64
+          
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            name: budget-linux-x64
+          
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: budget-windows-x64.exe
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      
+      - name: Build
+        working-directory: budget-analyzer
+        run: cargo build --release --target ${{ matrix.target }}
+      
+      - name: Rename binary
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            mv budget-analyzer/target/${{ matrix.target }}/release/budget.exe ${{ matrix.name }}
+          else
+            mv budget-analyzer/target/${{ matrix.target }}/release/budget ${{ matrix.name }}
+          fi
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            budget-macos-arm64/budget-macos-arm64
+            budget-macos-x64/budget-macos-x64
+            budget-linux-x64/budget-linux-x64
+            budget-windows-x64.exe/budget-windows-x64.exe
+          body: |
+            ## 🚀 Installation
+            
+            **macOS/Linux:**
+            ```bash
+              curl -sSf https://raw.githubusercontent.com/AyakorK/budget-analyzer/main/install.sh | sh
+            ```
+            
+            **Windows:**
+            ```powershell
+              irm https://raw.githubusercontent.com/AyakorK/budget-analyzer/main/install.ps1 | iex
+            ```
+            
+            **Via Cargo:**
+            ```bash
+              cargo install budget-analyzer
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

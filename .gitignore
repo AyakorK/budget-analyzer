@@ -1,0 +1,25 @@
+# Rust
+target/
+**/*.rs.bk
+*.pdb
+
+# Node
+node_modules/
+out/
+dist/
+*.tsbuildinfo
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Build artifacts
+releases/
+*.log
+
+# OS
+Thumbs.db
+.cache
