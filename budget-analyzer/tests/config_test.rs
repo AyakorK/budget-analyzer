@@ -64,7 +64,7 @@ fn test_custom_config_loading() {
     assert_eq!(config.rules.function, 12);
 
     assert_eq!(config.rules.r#while, 15); // Default
-    assert_eq!(config.rules.r#for, 10);    // Default
+    assert_eq!(config.rules.r#for, 10); // Default
 
     assert_eq!(config.get_bonus("ternary"), -8);
     assert_eq!(config.get_bonus("custom_bonus"), -15);

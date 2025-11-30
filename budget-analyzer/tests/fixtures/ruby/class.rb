@@ -6,7 +6,7 @@ class Point
         @y = y
     end
 
-    def distance
+    def distance()
         Math.sqrt(@x * @x + @y * @y)
     end
 end

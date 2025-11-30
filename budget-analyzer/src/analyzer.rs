@@ -1,9 +1,9 @@
 use crate::config::BudgetConfig;
-use crate::detection::{ConstructType, Detector, HybridDetector};
+use crate::detection::{detect_quality_patterns, ConstructType, Detector, HybridDetector};
 use crate::parsers::SupportedLanguage;
 use crate::profiles::{CodeStats, Profile, ProfileDetector};
 use anyhow::{Context, Result};
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tree_sitter::Node;
@@ -34,7 +34,11 @@ pub struct CostItem {
 
 impl AnalysisResult {
     pub fn status(&self) -> &str {
-        if self.exceeded { "EXCEEDED" } else { "OK" }
+        if self.exceeded {
+            "EXCEEDED"
+        } else {
+            "OK"
+        }
     }
 
     pub fn percentage(&self) -> f32 {
@@ -64,11 +68,10 @@ impl Analyzer {
     }
 
     pub fn analyze_file(&self, file_path: &Path) -> Result<AnalysisResult> {
-        let language = SupportedLanguage::from_path(file_path)
-            .context("Failed to detect language")?;
+        let language =
+            SupportedLanguage::from_path(file_path).context("Failed to detect language")?;
 
-        let code = fs::read_to_string(file_path)
-            .context("Failed to read file")?;
+        let code = fs::read_to_string(file_path).context("Failed to read file")?;
 
         let mut parser = language.create_parser()?;
         let tree = parser
@@ -78,9 +81,16 @@ impl Analyzer {
         let root = tree.root_node();
         let mut breakdown = Vec::new();
         let mut stats = CodeStats::new();
-        let mut seen = HashSet::new();
+        let mut seen: HashMap<(usize, String), usize> = HashMap::new();
 
-        self.traverse_node(&root, &code, &mut breakdown, &mut stats, &mut seen);
+        self.traverse_node(
+            &root,
+            &code,
+            &mut breakdown,
+            &mut stats,
+            &mut seen,
+            language.as_str(),
+        );
 
         let total: i32 = breakdown.iter().map(|item| item.cost).sum();
         let calculation = BudgetCalculation { total, breakdown };
@@ -106,20 +116,23 @@ impl Analyzer {
         code: &str,
         breakdown: &mut Vec<CostItem>,
         stats: &mut CodeStats,
-        seen: &mut HashSet<(usize, usize, String)>,
+        seen: &mut HashMap<(usize, String), usize>,
+        language: &str,
     ) {
         if let Some(construct_type) = self.detector.detect(node, code) {
             let line = node.start_position().row + 1;
-            let col = node.start_position().column;
-            let key = (line, col, construct_type.as_str().to_string());
+            let kind = construct_type.as_str().to_string();
 
-            if seen.insert(key) {
+            let key = (line, kind.clone());
+            let count = seen.entry(key.clone()).or_insert(0);
+            *count += 1;
+
+            if *count == 1 {
                 self.update_stats(construct_type, stats);
-
                 let cost = self.calculate_cost(construct_type);
 
                 breakdown.push(CostItem {
-                    kind: construct_type.as_str().to_string(),
+                    kind,
                     cost,
                     line,
                     description: format!("{} at line {}", construct_type.as_str(), line),
@@ -127,8 +140,25 @@ impl Analyzer {
             }
         }
 
+        // Quality patterns detection for this node
+        let quality_items = detect_quality_patterns(node, code, language);
+        for item in quality_items {
+            let key = (item.line, item.kind.clone());
+            let count = seen.entry(key.clone()).or_insert(0);
+            *count += 1;
+
+            if *count == 1 {
+                breakdown.push(CostItem {
+                    kind: item.kind,
+                    cost: item.cost,
+                    line: item.line,
+                    description: format!("Quality pattern at line {}", item.line),
+                });
+            }
+        }
+
         for child in node.children(&mut node.walk()) {
-            self.traverse_node(&child, code, breakdown, stats, seen);
+            self.traverse_node(&child, code, breakdown, stats, seen, language);
         }
     }
 

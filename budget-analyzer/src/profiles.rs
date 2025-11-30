@@ -45,7 +45,8 @@ impl<'a> ProfileDetector<'a> {
 
     fn check_file_config(&self, file_path: &Path) -> Option<Profile> {
         let path_str = file_path.to_string_lossy();
-        self.config.files
+        self.config
+            .files
             .get(path_str.as_ref())
             .map(|name| self.profile_from_string(name))
     }
@@ -53,7 +54,8 @@ impl<'a> ProfileDetector<'a> {
     fn check_file_patterns(&self, file_path: &Path) -> Option<Profile> {
         let path_str = file_path.to_string_lossy();
 
-        self.config.file_patterns
+        self.config
+            .file_patterns
             .iter()
             .find(|(pattern, _)| self.matches_pattern(&path_str, pattern))
             .map(|(_, profile_name)| self.profile_from_string(profile_name))
@@ -70,15 +72,13 @@ impl<'a> ProfileDetector<'a> {
     }
 
     fn detect_from_stats(&self, file_path: &Path, stats: &CodeStats) -> Profile {
-        let filename = file_path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("");
+        let filename = file_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
 
         if filename.contains(".test.")
             || filename.contains(".spec.")
             || filename.starts_with("test_")
-            || filename.ends_with("_test.") {
+            || filename.ends_with("_test.")
+        {
             return Profile::Test;
         }
 
@@ -89,13 +89,15 @@ impl<'a> ProfileDetector<'a> {
         if filename.contains(".utils.")
             || filename.contains("_utils.")
             || filename.contains("util")
-            || filename.ends_with("_helpers.") {
+            || filename.ends_with("_helpers.")
+        {
             return Profile::Strict;
         }
 
         if filename.contains("Service")
             || filename.contains("service")
-            || (stats.function_count >= 5 && stats.has_complex_logic) {
+            || (stats.function_count >= 5 && stats.has_complex_logic)
+        {
             return Profile::Service;
         }
 

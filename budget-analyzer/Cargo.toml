@@ -13,6 +13,7 @@ path = "src/main.rs"
 # CLI
 clap = { version = "4.5", features = ["derive", "cargo"] }
 colored = "2.1"
+lazy_static = "1.5.0"
 
 # Tree-sitter core
 tree-sitter = "0.22"

@@ -1,4 +1,4 @@
-use budget_analyzer::{Analyzer, Profile, BudgetConfig};
+use budget_analyzer::{Analyzer, BudgetConfig, Profile};
 use std::path::Path;
 
 #[test]

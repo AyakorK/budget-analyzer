@@ -29,11 +29,20 @@
       {
         "command": "budget-analyzer.analyzeWorkspace",
         "title": "Budget: Analyze Workspace"
+      },
+      {
+        "command": "budget-analyzer.toggleEnforce",
+        "title": "Budget: Toggle Build Enforcement"
       }
     ],
     "configuration": {
       "title": "Budget Analyzer",
       "properties": {
+        "budgetAnalyzer.enforceOnBuild": {
+          "type": "boolean",
+          "default": false,
+          "description": "Block build/run tasks when budget is exceeded"
+        },
         "budgetAnalyzer.trace.server": {
           "type": "string",
           "enum": ["off", "messages", "verbose"],

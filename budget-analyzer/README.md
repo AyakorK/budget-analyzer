@@ -157,8 +157,6 @@ cargo test integration_test
 # Run with output
 cargo test -- --nocapture
 
-# Test script (runs everything)
-./test_all.sh
 ```
 
 ---

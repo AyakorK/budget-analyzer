@@ -60,13 +60,27 @@ pub struct BudgetRules {
     pub class: i32,
 }
 
-fn default_true() -> bool { true }
-fn default_variable_cost() -> i32 { 2 }
-fn default_if_cost() -> i32 { 5 }
-fn default_while_cost() -> i32 { 15 }
-fn default_for_cost() -> i32 { 10 }
-fn default_function_cost() -> i32 { 8 }
-fn default_class_cost() -> i32 { 15 }
+fn default_true() -> bool {
+    true
+}
+fn default_variable_cost() -> i32 {
+    2
+}
+fn default_if_cost() -> i32 {
+    5
+}
+fn default_while_cost() -> i32 {
+    15
+}
+fn default_for_cost() -> i32 {
+    10
+}
+fn default_function_cost() -> i32 {
+    8
+}
+fn default_class_cost() -> i32 {
+    15
+}
 
 fn default_rules() -> BudgetRules {
     BudgetRules {
@@ -81,22 +95,34 @@ fn default_rules() -> BudgetRules {
 
 fn default_profiles() -> HashMap<String, ProfileConfig> {
     HashMap::from([
-        ("strict".to_string(), ProfileConfig {
-            max_budget: 80,
-            description: "Simple utility functions".to_string(),
-        }),
-        ("class".to_string(), ProfileConfig {
-            max_budget: 300,
-            description: "Classes with methods".to_string(),
-        }),
-        ("service".to_string(), ProfileConfig {
-            max_budget: 250,
-            description: "Business logic and services".to_string(),
-        }),
-        ("test".to_string(), ProfileConfig {
-            max_budget: 500,
-            description: "Test files".to_string(),
-        }),
+        (
+            "strict".to_string(),
+            ProfileConfig {
+                max_budget: 80,
+                description: "Simple utility functions".to_string(),
+            },
+        ),
+        (
+            "class".to_string(),
+            ProfileConfig {
+                max_budget: 300,
+                description: "Classes with methods".to_string(),
+            },
+        ),
+        (
+            "service".to_string(),
+            ProfileConfig {
+                max_budget: 250,
+                description: "Business logic and services".to_string(),
+            },
+        ),
+        (
+            "test".to_string(),
+            ProfileConfig {
+                max_budget: 500,
+                description: "Test files".to_string(),
+            },
+        ),
     ])
 }
 

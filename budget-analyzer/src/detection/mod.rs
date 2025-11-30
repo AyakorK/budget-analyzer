@@ -1,11 +1,12 @@
-pub mod semantic;
-pub mod patterns;
 pub mod hybrid;
+pub mod patterns;
+pub mod quality;
+pub mod semantic;
 
 pub use hybrid::HybridDetector;
-pub use semantic::SemanticDetector;
 pub use patterns::PatternDetector;
-
+pub use quality::{detect_quality_patterns, BudgetItem};
+pub use semantic::SemanticDetector;
 use tree_sitter::Node;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

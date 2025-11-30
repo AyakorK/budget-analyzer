@@ -62,10 +62,24 @@ fn analyze_path(path: &PathBuf, json_output: bool) -> Result<()> {
             Err(e) => eprintln!("{} {}: {}", "⚠️".yellow(), path.display(), e),
         }
     } else if path.is_dir() {
-        for entry in WalkDir::new(path).follow_links(true).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(path)
+            .follow_links(true)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
             let file_path = entry.path();
             if let Some(ext) = file_path.extension() {
-                if matches!(ext.to_str(), Some("ts") | Some("tsx") | Some("js") | Some("jsx") | Some("py") | Some("rb") | Some("go") | Some("rs")) {
+                if matches!(
+                    ext.to_str(),
+                    Some("ts")
+                        | Some("tsx")
+                        | Some("js")
+                        | Some("jsx")
+                        | Some("py")
+                        | Some("rb")
+                        | Some("go")
+                        | Some("rs")
+                ) {
                     match analyzer.analyze_file(file_path) {
                         Ok(result) => results.push(result),
                         Err(e) => eprintln!("{} {}: {}", "⚠️".yellow(), file_path.display(), e),
@@ -97,10 +111,24 @@ fn check_path(path: &PathBuf) -> Result<()> {
         }
         print_result(&result);
     } else if path.is_dir() {
-        for entry in WalkDir::new(path).follow_links(true).into_iter().filter_map(|e| e.ok()) {
+        for entry in WalkDir::new(path)
+            .follow_links(true)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
             let file_path = entry.path();
             if let Some(ext) = file_path.extension() {
-                if matches!(ext.to_str(), Some("ts") | Some("tsx") | Some("js") | Some("jsx") | Some("py") | Some("rb") | Some("go") | Some("rs")) {
+                if matches!(
+                    ext.to_str(),
+                    Some("ts")
+                        | Some("tsx")
+                        | Some("js")
+                        | Some("jsx")
+                        | Some("py")
+                        | Some("rb")
+                        | Some("go")
+                        | Some("rs")
+                ) {
                     match analyzer.analyze_file(file_path) {
                         Ok(result) => {
                             total_count += 1;
@@ -117,7 +145,11 @@ fn check_path(path: &PathBuf) -> Result<()> {
     }
 
     println!();
-    println!("Summary: {} OK, {} EXCEEDED", total_count - exceeded_count, exceeded_count);
+    println!(
+        "Summary: {} OK, {} EXCEEDED",
+        total_count - exceeded_count,
+        exceeded_count
+    );
 
     if exceeded_count > 0 {
         eprintln!("{}", "❌ Budget check failed!".red().bold());
