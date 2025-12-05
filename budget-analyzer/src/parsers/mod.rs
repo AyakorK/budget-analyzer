@@ -10,6 +10,7 @@ pub enum SupportedLanguage {
     Ruby,
     Go,
     Rust,
+    BlablaLang
 }
 
 impl SupportedLanguage {
@@ -21,6 +22,7 @@ impl SupportedLanguage {
             "rb" => Ok(Self::Ruby),
             "go" => Ok(Self::Go),
             "rs" => Ok(Self::Rust),
+            "bl" => Ok(Self::BlablaLang),
             _ => Err(anyhow!("Unsupported file extension: .{}", ext)),
         }
     }
@@ -35,12 +37,13 @@ impl SupportedLanguage {
 
     pub fn language(&self) -> Result<Language> {
         let lang = match self {
-            Self::TypeScript => tree_sitter_typescript::language_typescript(),
-            Self::JavaScript => tree_sitter_javascript::language(),
-            Self::Python => tree_sitter_python::language(),
-            Self::Ruby => tree_sitter_ruby::language(),
-            Self::Go => tree_sitter_go::language(),
-            Self::Rust => tree_sitter_rust::language(),
+            Self::TypeScript => tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+            Self::JavaScript => tree_sitter_javascript::LANGUAGE.into(),
+            Self::Python => tree_sitter_python::LANGUAGE.into(),
+            Self::Ruby => tree_sitter_ruby::LANGUAGE.into(),
+            Self::Go => tree_sitter_go::LANGUAGE.into(),
+            Self::Rust => tree_sitter_rust::LANGUAGE.into(),
+            Self::BlablaLang => tree_sitter_blablalang::LANGUAGE.into(),
         };
         Ok(lang)
     }
@@ -60,6 +63,7 @@ impl SupportedLanguage {
             Self::Ruby => "Ruby",
             Self::Go => "Go",
             Self::Rust => "Rust",
+            Self::BlablaLang => "BlablaLang",
         }
     }
 }

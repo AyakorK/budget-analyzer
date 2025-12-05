@@ -575,10 +575,8 @@ fn test_file_not_found_error() {
 fn test_unsupported_extension() {
     let analyzer = Analyzer::default();
 
-    // Assuming .txt is not supported
     let result = analyzer.analyze_file(Path::new("tests/fixtures/readme.txt"));
 
-    // This should either fail or handle gracefully
     if let Err(e) = result {
         assert!(
             e.to_string().contains("language") || e.to_string().contains("detect"),

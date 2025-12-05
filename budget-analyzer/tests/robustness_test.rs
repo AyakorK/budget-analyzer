@@ -403,12 +403,12 @@ fn test_no_duplicate_detection() {
     let analyzer = Analyzer::default();
 
     let code = r#"
-function test() {
-    if (true) {
-        return 1;
-    }
-}
-"#;
+                        function test() {
+                            if (true) {
+                                return 1;
+                            }
+                        }
+                        "#;
 
     fs::write("temp_duplicate.ts", code).unwrap();
     let result = analyzer

@@ -78,7 +78,6 @@ impl Detector for HybridDetector {
     ///
     /// # Example
     ///
-    /// ```ignore
     /// let detector = HybridDetector::new();
     /// let construct = detector.detect(&node, source_code);
     ///
@@ -88,7 +87,6 @@ impl Detector for HybridDetector {
     ///     None => println!("No construct detected"),
     ///     _ => {}
     /// }
-    /// ```
     fn detect(&self, node: &Node, code: &str) -> Option<ConstructType> {
         // Phase 1: Semantic detection (context-aware, filters false positives)
         if let Some(construct) = self.semantic.detect(node, code) {

@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as fs from 'fs'
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -36,9 +37,10 @@ export function activate(context: vscode.ExtensionContext) {
       { scheme: 'file', language: 'ruby' },
       { scheme: 'file', language: 'go' },
       { scheme: 'file', language: 'rust' },
+      { scheme: 'file', language: 'blablalang'}
     ],
     synchronize: {
-      fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{ts,js,py,rb,go,rs}'),
+      fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{ts,js,py,rb,go,rs,bl}'),
     },
   };
 
@@ -232,7 +234,7 @@ async function checkWorkspaceBudget(): Promise<boolean> {
   }
 
   const files = await vscode.workspace.findFiles(
-    '**/*.{ts,js,py,rb,go,rs}',
+    '**/*.{ts,js,py,rb,go,rs,bl}',
     '**/node_modules/**'
   );
 
@@ -271,12 +273,12 @@ function findServerBinary(): string | null {
   const baseDir = workspaceFolder.uri.fsPath;
 
   let serverPath = path.join(baseDir, 'budget-lsp', 'target', 'release', 'budget-lsp');
-  if (require('fs').existsSync(serverPath)) {
+  if (fs.existsSync(serverPath)) {
     return serverPath;
   }
 
   serverPath = path.join(baseDir, 'budget-lsp', 'target', 'debug', 'budget-lsp');
-  if (require('fs').existsSync(serverPath)) {
+  if (fs.existsSync(serverPath)) {
     return serverPath;
   }
 

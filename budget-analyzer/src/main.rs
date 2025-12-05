@@ -79,6 +79,7 @@ fn analyze_path(path: &PathBuf, json_output: bool) -> Result<()> {
                         | Some("rb")
                         | Some("go")
                         | Some("rs")
+                        | Some("bl")
                 ) {
                     match analyzer.analyze_file(file_path) {
                         Ok(result) => results.push(result),
@@ -128,6 +129,7 @@ fn check_path(path: &PathBuf) -> Result<()> {
                         | Some("rb")
                         | Some("go")
                         | Some("rs")
+                        | Some("bl")
                 ) {
                     match analyzer.analyze_file(file_path) {
                         Ok(result) => {
